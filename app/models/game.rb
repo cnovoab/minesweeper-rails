@@ -4,6 +4,22 @@ class Game < ApplicationRecord
   before_create :set_board
   attribute :board, :json, array: true
 
+  state_machine :state, initial: :unstarted do
+
+    event :start do
+      transition unstarted: :playing
+    end
+
+    event :win do
+      transition playing: :won
+    end
+
+    event :loss do
+      transition playing: :lost
+    end
+
+    after_transition to: :playing, do: :start
+  end
 
   LEVEL_MAP = {
     beginner: { rows: 9, cols: 9, mines: 10 },
@@ -11,9 +27,9 @@ class Game < ApplicationRecord
     expert: { rows: 16, cols: 30, mines: 99 }
   }
 
-  # def update_cell(params = {})
-  #   BoardManager::CellFlagger(
-  # end
+  def start
+    started_at = Time.now
+  end
 
   private
     def set_board
