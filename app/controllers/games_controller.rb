@@ -1,14 +1,12 @@
 class GamesController < ApplicationController
   before_action :set_game, only: [:show, :update, :destroy]
 
-  # GET /games/1
   def show
-    render json: @game.present
+    render json: @game
   end
 
-  # POST /games
   def create
-    @game = Game.new(game_params.merge(user_id: @current_user.id))
+    @game = Game.new(game_params)
 
     if @game.save
       render json: @game, status: :created, location: @game
@@ -17,7 +15,6 @@ class GamesController < ApplicationController
     end
   end
 
-  # PATCH/PUT /games/1
   def update
     if @game.update(game_params)
       render json: @game
@@ -26,7 +23,6 @@ class GamesController < ApplicationController
     end
   end
 
-  # DELETE /games/1
   def destroy
     @game.update(active: false)
   end
