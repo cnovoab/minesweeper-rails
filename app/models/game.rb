@@ -1,13 +1,11 @@
 class Game < ApplicationRecord
   enum difficulty: [:beginner, :intermediate, :expert]
-  enum state: [:unstarted, :playing, :won, :lost]
   before_create :set_board
   attribute :board, :json, array: true
 
   state_machine :state, initial: :unstarted do
-
-    event :start do
-      transition unstarted: :playing
+    event :start do |game|
+      transition :unstarted => :playing
     end
 
     event :win do
@@ -18,7 +16,10 @@ class Game < ApplicationRecord
       transition playing: :lost
     end
 
-    after_transition to: :playing, do: :start
+    after_transition to: :playing do |game|
+      game.update(started_at: Time.now)
+      BoardManager::MinesInitializer.call(game.id)
+    end
   end
 
   LEVEL_MAP = {
@@ -27,8 +28,8 @@ class Game < ApplicationRecord
     expert: { rows: 16, cols: 30, mines: 99 }
   }
 
-  def start
-    started_at = Time.now
+  def elapsed_time
+    ((game.finished_at || Time.now) - game.started_at).to_i
   end
 
   private
