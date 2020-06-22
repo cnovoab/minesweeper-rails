@@ -1,6 +1,7 @@
 class Game < ApplicationRecord
   enum difficulty: [:beginner, :intermediate, :expert]
   before_create :set_board
+  before_update :check_win
   attribute :board, :json, array: true
 
   state_machine :state, initial: :unstarted do
@@ -12,13 +13,17 @@ class Game < ApplicationRecord
       transition playing: :won
     end
 
-    event :loss do
+    event :over do
       transition playing: :lost
     end
 
     after_transition to: :playing do |game|
       game.update(started_at: Time.now)
       BoardManager::MinesInitializer.call(game.id)
+    end
+
+    after_transition to: :lost do |game|
+      game.update(finished_at: Time.now)
     end
   end
 
@@ -29,7 +34,33 @@ class Game < ApplicationRecord
   }
 
   def elapsed_time
-    ((game.finished_at || Time.now) - game.started_at).to_i
+    ((finished_at || Time.now) - started_at).to_i
+  end
+
+  def cells_revealed
+    revealed = []
+    board.each_with_index do |row, i|
+      row.each_with_index do |cell, j|
+        cell = Cell.new(cell)
+        revealed << [i, j] if cell.revealed && !cell.mine
+      end
+    end
+    revealed
+  end
+
+  def cells_mined
+    mines = []
+    board.each_with_index do |row, i|
+      row.each_with_index do |cell, j|
+        cell = Cell.new(cell)
+        mines << [i, j] if cell.mine
+      end
+    end
+    mines
+  end
+
+  def cells_to_reveal
+    (rows * cols) - mines
   end
 
   private
@@ -38,5 +69,14 @@ class Game < ApplicationRecord
       self.cols = LEVEL_MAP[difficulty.to_sym][:cols]
       self.mines = LEVEL_MAP[difficulty.to_sym][:mines]
       self.board = Array.new(self.rows, Array.new(self.cols, Cell.new))
+    end
+
+    def check_win
+      self.win if win_conditions
+    end
+
+    def win_conditions
+      state == :playing &&
+        cells_revealed.count == (rows * cols) - mines
     end
 end
