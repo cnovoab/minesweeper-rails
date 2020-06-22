@@ -1,10 +1,11 @@
 class Cell
-  attr_reader :revealed, :flagged, :mine, :value
+  include ActiveModel::Type
+  attr_accessor :revealed, :flagged, :mine, :value
 
   def initialize(params = {})
-    @revealed = params[:revealed] || false
-    @flagged = params[:flagged] || false
-    @mine = params[:mine] || false
+    @revealed = Boolean.new.cast(params[:revealed])
+    @flagged = Boolean.new.cast(params[:flagged])
+    @mine = Boolean.new.cast(params[:mine])
     @value = params[:value]
   end
 end
