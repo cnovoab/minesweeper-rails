@@ -8,11 +8,14 @@ module BoardManager
       @game = Game.find(game_id)
       @row, @col = row.to_i, col.to_i
       @cell = @game.board[@row][@col]
-      @cell_value = params.values_at(*CELL_KEYS)
+      @cell.merge!(params.slice(*CELL_KEYS))
     end
 
     def call
-      @game.board[@row][@col] = @cell.merge(@cell_value)
+      cell = Cell.new(@cell)
+      @game.board[@row][@col] = @cell
+      @game.start if cell.revealed && @game.cells_revealed.count == 1
+      @game.over if cell.revealed && cell.mine
       @game.save
     end
   end

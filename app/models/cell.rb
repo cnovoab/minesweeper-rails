@@ -3,9 +3,10 @@ class Cell
   attr_accessor :revealed, :flagged, :mine, :value
 
   def initialize(params = {})
-    @revealed = Boolean.new.cast(params[:revealed])
-    @flagged = Boolean.new.cast(params[:flagged])
-    @mine = Boolean.new.cast(params[:mine])
+    params.symbolize_keys!
+    @revealed = Boolean.new.cast(params[:revealed]) || false
+    @flagged = Boolean.new.cast(params[:flagged]) || false
+    @mine = Boolean.new.cast(params[:mine]) || false
     @value = params[:value]
   end
 end
