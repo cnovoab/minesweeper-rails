@@ -1,7 +1,7 @@
 class Game < ApplicationRecord
   enum difficulty: [:beginner, :intermediate, :expert]
   before_create :set_board
-  before_update :check_win
+  after_update :check_win
   attribute :board, :json, array: true
 
   state_machine :state, initial: :unstarted do
@@ -43,7 +43,7 @@ class Game < ApplicationRecord
     board.each_with_index do |row, i|
       row.each_with_index do |cell, j|
         cell = Cell.new(cell)
-        revealed << [i, j] if cell.revealed && !cell.mine
+        revealed << [i, j] if cell.revealed
       end
     end
     revealed
@@ -58,6 +58,17 @@ class Game < ApplicationRecord
       end
     end
     mines
+  end
+
+  def cells_flagged
+    flags = []
+    board.each_with_index do |row, i|
+      row.each_with_index do |cell, j|
+        cell = Cell.new(cell)
+        flags << [i, j] if cell.flagged
+      end
+    end
+    flags
   end
 
   def cells_to_reveal
