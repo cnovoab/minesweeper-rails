@@ -1,7 +1,7 @@
 module BoardManager
   class MinesInitializer < ApplicationService
-    def initialize(game_id)
-      @game = Game.find(game_id)
+    def initialize(game)
+      @game = game
     end
 
     def call
