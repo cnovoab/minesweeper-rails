@@ -6,7 +6,7 @@ class CellController < ApplicationController
   end
 
   def update
-    if BoardManager::CellRevealer.call(@game, @row, @col)
+    if BoardManager::CellUpdater.call(@game, @row, @col, @data)
       render json: @game.reload.board[@row][@col]
     else
       render json: @game.errors, status: :unprocessable_entity
@@ -15,9 +15,10 @@ class CellController < ApplicationController
 
   private
     def set_cell
-      @game = Game.find(params['game_id'])
+      @game = Game.find(params[:game_id])
       @row = params[:row].to_i
       @col = params[:col].to_i
+      @data = params.slice(:revealed, :flagged)
     end
 
     def cell_params

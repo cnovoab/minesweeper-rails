@@ -9,7 +9,7 @@ module BoardManager
     def call
       @game.board[@row][@col][:revealed] = true
       NeighborsRevealer.call(@game, @row, @col) if @cell.value == 0
-      @game.start if @game.cells_revealed.count == 1
+      @game.start if @game.unstarted?
       @game.over if @cell.mine
       @game.save
     end
