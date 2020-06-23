@@ -19,10 +19,11 @@ class Game < ApplicationRecord
 
     after_transition to: :playing do |game|
       game.update(started_at: Time.now)
-      BoardManager::MinesInitializer.call(game.id)
+      BoardManager::MinesInitializer.call(game)
+      BoardManager::ValuesInitializer.call(game)
     end
 
-    after_transition to: :lost do |game|
+    after_transition to: [:lost, :won] do |game|
       game.update(finished_at: Time.now)
     end
   end
@@ -76,7 +77,6 @@ class Game < ApplicationRecord
     end
 
     def win_conditions
-      state == :playing &&
-        cells_revealed.count == (rows * cols) - mines
+      playing? && cells_revealed.count == cells_to_reveal
     end
 end
