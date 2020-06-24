@@ -7,7 +7,7 @@ class CellController < ApplicationController
 
   def update
     if BoardManager::CellUpdater.call(@game, @row, @col, @data)
-      render json: @game.reload.board[@row][@col]
+      render json: @game.reload
     else
       render json: @game.errors, status: :unprocessable_entity
     end
