@@ -26,6 +26,10 @@ class Game < ApplicationRecord
     after_transition to: [:lost, :won] do |game|
       game.update(finished_at: Time.now)
     end
+
+    after_transition to: :lost do |game|
+      BoardManager::MinesRevealer.call(game)
+    end
   end
 
   LEVEL_MAP = {
